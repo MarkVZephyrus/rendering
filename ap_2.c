@@ -1,36 +1,46 @@
+/*
+ * Seems to work.
+ *
+ */
+
 #include "matrix.h"
 
 // CAMERA DATA
-float CAMPositon[3] = {5.0f, 5.0f, 5.0f};    // Initialize Bitch
-float CAMNormal_Raw[3] = {1.0f, 1.0f, 1.0f}; // Initialize Bitch
-float CAMTilt_Raw[3] = {1.0f, 0.0f, 0.0f};   // Initialize Bitch
+float CAMPositon[3] = {5.0f, 5.0f, 5.0f};       // Rando position.
+float CAMNormal_Raw[3] = {-1.0f, -1.0f, -1.0f}; // Pointing towards the Origin
+float CAMTilt_Raw[3] = {1.0f, 0.0f, 0.0f};      // X-Axis, so 0 tilt.
 
 // GLOBALS
-matrix transform;
-vec3 translate, n, t;
-float project;
-float **vertices;
+matrix transform;     // the magic sauce
+vec3 translate, n, t; // camera position, direction of the camera, camera tilt.
+float fov = 10.0f;    // distance between the camera and the viewer.
+float **vertices;     // the vertex buffer.
 
-int getTransform(matrix *ret);
 int getProjected(vec3 *coordinates, vec3 *ret);
 float **generateCube(float side);
 
 int main() {
+  // INITIALIZATIONS
+
   create_vectori(&translate, CAMPositon);
-  scale_vector(&translate, -1.0, &translate);
+  scale_vector(&translate, -1.0,
+               &translate); // to be removed from the coordinates to shift.
+
   create_vectori(&n, CAMNormal_Raw);
   normalize_vector(&n, &n);
+
   create_vectori(&t, CAMTilt_Raw);
   normalize_vector(&t, &t);
-  project = 10;
 
+  // CREATE THE TRANSFORM MATRIX
+  // uses the resluting basis vector approach.
   vec3 z;
   create_vector(&z, 0.0f, 0.0f, 0.0f);
-  scale_vector(&n, -1.0f, &z);
+  scale_vector(&n, 1.0f, &z); // maybe I should implement an equals function.
 
   vec3 y;
   create_vector(&y, 0.0f, 0.0f, 0.0f);
-  crossprod_vector(&n, &t, &y);
+  crossprod_vector(&t, &n, &y);
   normalize_vector(&y, &y);
 
   vec3 x;
@@ -38,60 +48,54 @@ int main() {
   crossprod_vector(&z, &y, &x);
   normalize_vector(&x, &x);
 
-  constructTransform_matrix(&x, &y, &z, project, &transform);
-  getTransform(&transform);
+  constructTransform_matrix(&x, &y, &z, fov, &transform);
 
+  // PROJECT
+  // As you will see projecting the origin helps.
   vec3 origin;
   create_vector(&origin, 0.0f, 0.0f, 0.0f);
-  vec3 projected;
-  create_vector(&projected, 1.0f, 2.0f, 3.0f);
-  getProjected(&origin, &projected);
-  print_vector(&projected);
+  getProjected(&origin, &origin);
+  puts("Origin:");
+  print_vector(&origin);
+
   puts("_______________________________________");
 
   vertices = generateCube(1.0f);
   vec3 vertex;
+
   vec3 z_removal;
-  create_vector(&z_removal, 0.0f, 0.0f, -projected.coord.z);
+  create_vector(&z_removal, 0.0f, 0.0f, -origin.coord.z);
+
+  puts("\nVertices:");
   for (int i = 0; i != 8; i++) {
     create_vectori(&vertex, vertices[i]);
     getProjected(&vertex, &vertex);
-    sum_vector(&vertex, &z_removal, &vertex);
+    sum_vector(
+        &vertex, &z_removal,
+        &vertex); // we do not care about the complete z coordinate. Or maybe we
+                  // do, not sure yet. The z coordinate is visibly nonsensical.
     print_vector(&vertex);
   }
 
   puts("_______________________________________");
+
+  puts("\nAxes (shifted):");
+
+  // the new basis vectors, keep in mind they have been shifted.
   vec3 axis;
-  create_vector(&axis, 1.0f, 0.0f, 0.0f);
   vec3 out;
+  // x-axis
+  create_vector(&axis, 1.0f, 0.0f, 0.0f);
   getProjected(&axis, &out);
   print_vector(&out);
+  // y-axis
   create_vector(&axis, 0.0f, 1.0f, 0.0f);
   getProjected(&axis, &out);
   print_vector(&out);
+  // z-axis
   create_vector(&axis, 0.0f, 0.0f, 1.0f);
   getProjected(&axis, &out);
   print_vector(&out);
-
-  return OK;
-}
-
-int getTransform(matrix *ret) {
-  vec3 z;
-  create_vector(&z, 0.0f, 0.0f, 0.0f);
-  scale_vector(&n, -1.0f, &z);
-
-  vec3 y;
-  create_vector(&y, 0.0f, 0.0f, 0.0f);
-  crossprod_vector(&n, &t, &y);
-  normalize_vector(&y, &y);
-
-  vec3 x;
-  create_vector(&x, 0.0f, 0.0f, 0.0f);
-  crossprod_vector(&z, &y, &x);
-  normalize_vector(&x, &x);
-
-  constructTransform_matrix(&x, &y, &z, project, ret);
 
   return OK;
 }
@@ -117,6 +121,8 @@ int getProjected(vec3 *coordinates, vec3 *ret) {
 // splendid solution that I found on the internet.
 // https://catonif.github.io/cube/
 // Cube position can be easily implemented.
+// The vertices of a cube centered at the origin with side 1 is odly reminicent
+// of the binary numbers 0-7.
 float **generateCube(float side) {
   float **vertices;
   float c = side * 0.5;
