@@ -3,12 +3,13 @@
  *
  */
 
-#include "matrix.h"
+#include "mathl.h"
 
 // CAMERA DATA
-float CAMPositon[3] = {5.0f, 5.0f, 5.0f};       // Rando position.
-float CAMNormal_Raw[3] = {-1.0f, -1.0f, -1.0f}; // Pointing towards the Origin
-float CAMTilt_Raw[3] = {1.0f, 0.0f, 0.0f};      // X-Axis, so 0 tilt.
+float CAMPositon[3] = {5.0f, 5.0f, 5.0f}; // Rando position.
+float CAMNormal_Raw[3] = {1.0f, 1.0f,
+                          1.0f}; // It can point away from the origin too.
+float CAMTilt_Raw[3] = {1.0f, 0.0f, 0.0f}; // X-Axis, so 0 tilt.
 
 // GLOBALS
 matrix transform;     // the magic sauce
@@ -40,7 +41,7 @@ int main() {
 
   vec3 y;
   create_vector(&y, 0.0f, 0.0f, 0.0f);
-  crossprod_vector(&t, &n, &y);
+  crossprod_vector(&n, &t, &y);
   normalize_vector(&y, &y);
 
   vec3 x;
@@ -48,7 +49,7 @@ int main() {
   crossprod_vector(&z, &y, &x);
   normalize_vector(&x, &x);
 
-  constructTransform_matrix(&x, &y, &z, fov, &transform);
+  constructTransform_matrix(&x, &y, &z, &transform);
 
   // PROJECT
   // As you will see projecting the origin helps.
@@ -74,6 +75,7 @@ int main() {
         &vertex, &z_removal,
         &vertex); // we do not care about the complete z coordinate. Or maybe we
                   // do, not sure yet. The z coordinate is visibly nonsensical.
+    putchar(65 + i);
     print_vector(&vertex);
   }
 
@@ -103,17 +105,27 @@ int main() {
 int getProjected(vec3 *coordinates, vec3 *ret) {
 
   // Translate
-  vec3 v_t;
-  create_vector(&v_t, 0.0f, 0.0f, 0.0f);
-  sum_vector(coordinates, &translate, &v_t);
+  /* vec3 v_t; */
+  /* create_vector(&v_t, 0.0f, 0.0f, 0.0f); */
+  /* sum_vector(coordinates, &translate, &v_t); */
 
   // Depth Scaling
-  float zcs = 1 / v_t.coord.z;
 
   // Transform
-  create_vector(ret, 0.0f, 0.0f, 0.0f);
-  transform_vector(&transform, &v_t, ret);
-  scale_vector(ret, zcs, ret);
+  /* create_vector(ret, 0.0f, 0.0f, 0.0f); */
+  /* transform_vector(&transform, &v_t, ret); */
+  /* scale_vector(ret, zcs, ret); */
+
+  // Transform
+  vec3 v_tf;
+  transform_vector(&transform, coordinates, &v_tf);
+
+  // Translate
+  sum_vector(&v_tf, &translate, ret);
+  float zcs = fov / ret->coord.z;
+
+  // Scale
+  scale_vector(ret, 1.0f, ret);
 
   return OK;
 }

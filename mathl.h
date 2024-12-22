@@ -1,11 +1,18 @@
-#ifndef MATRIX_H
-#define MATRIX_H
+#ifndef MATHL_H
+#define MATHL_H
 #include <stdio.h>
 #include <stdlib.h>
 #define OK 0
 #define ERR -1
 
+#define PI5 3.14159f
+#define PI_HALF 1.57079
+#define PI_INV 0.31831
+
 float quake_FISR(float number);
+float sin_apx(float number);
+float cos_apx(float number);
+int floor_apx(float number);
 
 typedef struct matrix {
   float **mat;
@@ -42,6 +49,8 @@ int sum_vector(const vec3 *a, const vec3 *b, vec3 *out);
 int scale_vector(const vec3 *a, float scalar, vec3 *out);
 
 int constructTransform_matrix(const vec3 *x, const vec3 *y, const vec3 *z,
-                              float scale, matrix *transform);
+                              matrix *transform);
+
+int eulerVector(float alpha, float beta, vec3 *v);
 
 #endif

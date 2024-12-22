@@ -1,6 +1,6 @@
 // Taken help from https://github.com/ibrohimsub/s21_matrix. For create_matrix
 // and print.
-#include "matrix.h"
+#include "mathl.h"
 
 // Quake Fast Inverse Square, because I love stolen code.
 float quake_FISR(float number) {
@@ -17,6 +17,39 @@ float quake_FISR(float number) {
   y = y * (threehalfs - (x2 * y * y));
 
   return y;
+}
+
+int floor_apx(float number) {
+  // I am not smart enough to do a proper implementation.
+  if (number < 0) {
+    return -1 * (int)(-number);
+  }
+  return (int)number;
+}
+
+// Wouldn't trust this with my life. Only accurate up to 2 decimal points.
+float sin_apx(float number) {
+  float x = 0;
+  int n = floor_apx(number / (2 * PI5));
+  x = number - (2.0 * n * PI5); // narrow down to 2 * pi.
+  int lower_quad = 1;
+  if (x > PI5) { // narrow down to pi.
+    lower_quad = -1;
+    x -= PI5;
+  }
+  if (x > PI5 * 0.5) // narrow down to pi / 2.
+    x = PI5 - x;
+  // Taylor Series
+  x -= (x * x * x) / 6.0;
+  x += (x * x * x * x * x) / 120;
+  // x -= (x ^ 7) * 0.0001934f;
+  return lower_quad * x;
+}
+
+// Again shit precision. Do better.
+float cos_apx(float number) {
+  float x = sin_apx(number);
+  return 1 / quake_FISR(1 - (x * x)); // The fuck am I even doing?
 }
 
 int create_matrix(int r, int c, matrix *res) {
@@ -180,12 +213,20 @@ int scale_vector(const vec3 *a, float scalar, vec3 *out) {
 }
 
 int constructTransform_matrix(const vec3 *x, const vec3 *y, const vec3 *z,
-                              float scale, matrix *transform) {
+                              matrix *transform) {
   create_matrix(3, 3, transform);
   float buffer[3][3] = {{x->coord.x, y->coord.x, z->coord.x},
                         {x->coord.y, y->coord.y, z->coord.y},
                         {x->coord.z, y->coord.z, z->coord.z}};
   assign_matrix(transform, buffer);
-  scale_matrix(transform, scale, transform);
+  return OK;
+}
+
+// Got this from my research in aprroach 1, so no efforted wasted I guess.
+int eulerVector(float alpha, float beta, vec3 *v) {
+  create_vector(v, 0.0f, 0.0f, 0.0f);
+  v->coord.x = sin_apx(alpha) * cos_apx(beta);
+  v->coord.y = sin_apx(beta);
+  v->coord.z = cos_apx(alpha) * cos_apx(beta);
   return OK;
 }
