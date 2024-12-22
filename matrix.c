@@ -163,7 +163,7 @@ int normalize_vector(const vec3 *raw, vec3 *out) {
 }
 
 int print_vector(const vec3 *a) {
-  printf("[x: %.2f\t y: %.2f\t z: %.2f]\n", a->coord.x, a->coord.y, a->coord.z);
+  printf("[x: %.4f\t y: %.4f\t z: %.4f]\n", a->coord.x, a->coord.y, a->coord.z);
   return OK;
 }
 
