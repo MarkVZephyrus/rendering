@@ -10,12 +10,12 @@ float CAMPositon[3] = {5.0f, 5.0f, 5.0f}; // Rando position.
 // Angles
 float a = PI5 / 4;
 float b = PI5 / 4;
-float g = 0.0;
+float g = PI5 / 8;
 
 // GLOBALS
 matrix transform;     // the magic sauce
 vec3 translate, n, t; // camera position, direction of the camera, camera tilt.
-float fov = 10.0f;    // distance between the camera and the viewer.
+float fov = 5.0f;     // distance between the camera and the viewer.
 float **vertices;     // the vertex buffer.
 
 int getProjected(vec3 *coordinates, vec3 *ret);
