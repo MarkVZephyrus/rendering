@@ -7,9 +7,10 @@
 
 // CAMERA DATA
 float CAMPositon[3] = {5.0f, 5.0f, 5.0f}; // Rando position.
-float CAMNormal_Raw[3] = {1.0f, 1.0f,
-                          1.0f}; // It can point away from the origin too.
-float CAMTilt_Raw[3] = {1.0f, 0.0f, 0.0f}; // X-Axis, so 0 tilt.
+// Angles
+float a = PI5 / 4;
+float b = PI5 / 4;
+float g = 0.0;
 
 // GLOBALS
 matrix transform;     // the magic sauce
@@ -24,13 +25,16 @@ int main() {
   // INITIALIZATIONS
 
   create_vectori(&translate, CAMPositon);
+
   scale_vector(&translate, -1.0,
                &translate); // to be removed from the coordinates to shift.
 
-  create_vectori(&n, CAMNormal_Raw);
+  // I can see my future self scratching my head at these 2 initializations.
+  // I shall hopefully write a detailed explaination of my method.
+  eulerVector(a, b, &n);
   normalize_vector(&n, &n);
 
-  create_vectori(&t, CAMTilt_Raw);
+  eulerVector(-a, b + g, &t);
   normalize_vector(&t, &t);
 
   // CREATE THE TRANSFORM MATRIX
@@ -75,7 +79,7 @@ int main() {
         &vertex, &z_removal,
         &vertex); // we do not care about the complete z coordinate. Or maybe we
                   // do, not sure yet. The z coordinate is visibly nonsensical.
-    putchar(65 + i);
+    putchar('A' + i);
     print_vector(&vertex);
   }
 
@@ -103,18 +107,6 @@ int main() {
 }
 
 int getProjected(vec3 *coordinates, vec3 *ret) {
-
-  // Translate
-  /* vec3 v_t; */
-  /* create_vector(&v_t, 0.0f, 0.0f, 0.0f); */
-  /* sum_vector(coordinates, &translate, &v_t); */
-
-  // Depth Scaling
-
-  // Transform
-  /* create_vector(ret, 0.0f, 0.0f, 0.0f); */
-  /* transform_vector(&transform, &v_t, ret); */
-  /* scale_vector(ret, zcs, ret); */
 
   // Transform
   vec3 v_tf;
